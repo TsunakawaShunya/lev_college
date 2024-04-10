@@ -9,11 +9,11 @@ use App\Models\Category;
 
 class PostController extends Controller
 {
-    public function index(Post $post)
+    public function index(Post $posts)
     {
-        return view('posts.index')->with(['posts' => $post->getPaginateByLimit()]);  
+        return view('posts.index')->with(['posts' => $posts->getPaginateByLimit()]);
     }
-    
+
     public function show(Post $post)
     {
         return view('posts.show')->with(['post' => $post]);
