@@ -7,6 +7,10 @@ use Illuminate\Support\Facades\Route;
 
 
 
+Route::get('/welcome', function() {
+    return view('welcome');
+});
+
 Route::get('/dashboard', function () {
     return view('dashboard');
 })->middleware(['auth', 'verified'])->name('dashboard');
@@ -20,7 +24,6 @@ Route::controller(PostController::class)->middleware(['auth'])->group(function()
     Route::delete('/posts/{post}', 'delete')->name('delete');
     Route::get('/posts/{post}/edit', 'edit')->name('edit');
 });
-
 
 
 Route::get('/categories/{category}', [CategoryController::class,'index'])->middleware("auth");
