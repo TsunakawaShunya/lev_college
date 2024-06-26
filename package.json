@@ -2,7 +2,8 @@
     "private": true,
     "scripts": {
         "dev": "vite",
-        "build": "vite build"
+        "build": "vite build",
+        "prod": "NODE_ENV=production webpack --config webpack.prod.js"
     },
     "devDependencies": {
         "@tailwindcss/forms": "^0.5.2",

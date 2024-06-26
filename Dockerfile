@@ -1,26 +1,43 @@
-FROM node:16-slim as node-builder
+# ベースイメージ
+FROM php:8.1-fpm
 
-COPY . ./app
-RUN cd /app && npm ci && npm run prod
+# 作業ディレクトリを設定
+WORKDIR /var/www
 
-
-FROM php:8.1.5-apache
-
+# 必要なPHP拡張をインストール
 RUN apt-get update && apt-get install -y \
-  zip \
-  unzip \
-  git
+    build-essential \
+    libpng-dev \
+    libjpeg62-turbo-dev \
+    libfreetype6-dev \
+    locales \
+    zip \
+    jpegoptim optipng pngquant gifsicle \
+    vim \
+    unzip \
+    git \
+    curl \
+    && docker-php-ext-configure gd --with-freetype --with-jpeg \
+    && docker-php-ext-install pdo pdo_mysql gd
 
-RUN docker-php-ext-install -j "$(nproc)" opcache && docker-php-ext-enable opcache
+# Composerをインストール
+COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
-RUN sed -i 's/80/8080/g' /etc/apache2/sites-available/000-default.conf /etc/apache2/ports.conf
-RUN sed -i 's#/var/www/html#/var/www/html/public#g' /etc/apache2/sites-available/000-default.conf
-RUN mv "$PHP_INI_DIR/php.ini-production" "$PHP_INI_DIR/php.ini"
+# アプリケーションコードをコピー
+COPY . /var/www
 
-COPY --from=composer:2.0 /usr/bin/composer /usr/bin/composer
-
-WORKDIR /var/www/html
-COPY . ./
-COPY --from=node-builder /app/public ./public
+# Composerの依存関係をインストール
 RUN composer install
-RUN chown -Rf www-data:www-data ./
+
+# Breezeのインストールと設定
+RUN php artisan breeze:install
+RUN npm install && npm run dev
+
+# パーミッションの設定
+RUN chown -R www-data:www-data /var/www/storage /var/www/bootstrap/cache
+
+# ポートを公開
+EXPOSE 9000
+
+# Laravelのサーバーを起動
+CMD ["php-fpm"]
